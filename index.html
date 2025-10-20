@@ -1,4 +1,37 @@
 <!DOCTYPE html>
+<!--
+    The Summoning - Act II (Modified)
+    
+    Key Changes Made:
+    1. Removed activation date/time - now just checks current Singapore time and proceeds
+    2. All trigger times use Singapore timezone (UTC+8) via WorldTimeAPI
+    3. Queued past segments:
+       - On page load, if now is 21 Oct or after any segment's scheduled time, 
+         queue all segments that have passed and are not yet completed
+       - Deliver queued items one minute (60 seconds) apart
+       - For queued items: show short final-stage moon full-glow for ~10 seconds, 
+         then automatically display message (no user click needed)
+       - Preserve 2-minute dwell within the message itself
+    4. Message sequence and interactions:
+       - Gibberish for 3 seconds (changed from 5-7 seconds)
+       - 0.4 second shake
+       - Reveal full text instantly
+       - After reveal: entire message becomes clickable with pointer cursor
+       - Clicking anywhere closes immediately and continues to rune reveal
+       - If not clicked, auto-close after exactly 2 minutes and continue to rune reveal
+    5. Time management:
+       - Primary: WorldTimeAPI (https://worldtimeapi.org/api/timezone/Asia/Singapore)
+       - Polling every 1 second
+       - Fallback: browser time converted to UTC+8
+       - All triggers use Singapore Time
+    6. Segment delivery schedule:
+       - Segment 1: 20 Oct 2025, 19:04 SGT
+       - Segment 2: 20 Oct 2025, 20:09 SGT
+       - Segment 3: 20 Oct 2025, 21:06 SGT
+       - Segment 4: 21 Oct 2025, 07:00 SGT (available only at exactly 07:00)
+    7. Blog transformation:
+       - 22 Oct 2025, 00:01 SGT: page becomes blog page (permanent state)
+-->
 <html lang="en">
 <head>
     <meta charset="UTF-8">
@@ -678,7 +711,8 @@
         body.blog-mode .header-info,
         body.blog-mode .rune-constellation,
         body.blog-mode .ghost-quote,
-        body.blog-mode .stars {
+        body.blog-mode .stars,
+        body.blog-mode .test-controls {
             display: none !important;
         }
 
@@ -722,6 +756,94 @@
             border-radius: 3px;
         }
 
+        /* Test controls */
+        .test-controls {
+            position: fixed;
+            top: 50%;
+            right: 20px;
+            transform: translateY(-50%);
+            background: rgba(0, 0, 0, 0.9);
+            border: 2px solid #d4af37;
+            border-radius: 10px;
+            padding: 20px;
+            z-index: 1000;
+            display: none;
+            max-width: 250px;
+            max-height: 90vh;
+            overflow-y: auto;
+        }
+
+        .test-controls.active {
+            display: block;
+        }
+
+        .test-controls h3 {
+            font-family: 'Cinzel', serif;
+            font-size: 1rem;
+            margin-bottom: 15px;
+            color: #d4af37;
+            text-align: center;
+        }
+
+        .test-btn {
+            display: block;
+            width: 100%;
+            padding: 10px;
+            margin-bottom: 8px;
+            background: rgba(212, 175, 55, 0.2);
+            border: 1px solid #d4af37;
+            border-radius: 5px;
+            color: #d4af37;
+            font-family: 'Inter', sans-serif;
+            font-size: 0.75rem;
+            cursor: pointer;
+            transition: all 0.2s ease;
+        }
+
+        .test-btn:hover {
+            background: rgba(212, 175, 55, 0.4);
+            transform: translateX(-3px);
+        }
+
+        .test-btn:active {
+            background: rgba(212, 175, 55, 0.6);
+        }
+
+        .test-section {
+            margin-bottom: 15px;
+            padding-bottom: 15px;
+            border-bottom: 1px solid rgba(212, 175, 55, 0.3);
+        }
+
+        .test-section:last-child {
+            border-bottom: none;
+        }
+
+        .test-label {
+            font-size: 0.7rem;
+            color: rgba(212, 175, 55, 0.7);
+            margin-bottom: 8px;
+            font-family: 'Inter', sans-serif;
+        }
+
+        .test-indicator {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            background: rgba(255, 100, 100, 0.9);
+            color: white;
+            padding: 8px 15px;
+            border-radius: 15px;
+            font-family: 'Inter', sans-serif;
+            font-size: 0.75rem;
+            z-index: 999;
+            display: none;
+        }
+
+        .test-indicator.active {
+            display: block;
+        }
+
         /* Responsive */
         @media (max-width: 768px) {
             .header-info {
@@ -763,6 +885,12 @@
 
             .blog-post h1 {
                 font-size: 2.2rem;
+            }
+
+            .test-controls {
+                right: 10px;
+                max-width: 200px;
+                font-size: 0.7rem;
             }
         }
 
@@ -855,11 +983,72 @@
         <div id="blogContent"></div>
     </div>
 
+    <!-- Test indicator -->
+    <div class="test-indicator" id="testIndicator">🔧 TEST MODE</div>
+
+    <!-- Test controls -->
+    <div class="test-controls" id="testControls">
+        <h3>🔧 Test Controls</h3>
+        
+        <div class="test-section">
+            <div class="test-label">SEGMENTS</div>
+            <button class="test-btn" onclick="testMakeAvailable(0)">Make Segment 1 Available</button>
+            <button class="test-btn" onclick="testMakeAvailable(1)">Make Segment 2 Available</button>
+            <button class="test-btn" onclick="testMakeAvailable(2)">Make Segment 3 Available</button>
+            <button class="test-btn" onclick="testMakeAvailable(3)">Make Segment 4 Available</button>
+        </div>
+
+        <div class="test-section">
+            <div class="test-label">GLOW INTENSITY</div>
+            <button class="test-btn" onclick="testGlowIntensity('subtle')">Subtle Glow (Far)</button>
+            <button class="test-btn" onclick="testGlowIntensity('medium')">Medium Glow</button>
+            <button class="test-btn" onclick="testGlowIntensity('intense')">Intense Glow (Near)</button>
+        </div>
+
+        <div class="test-section">
+            <div class="test-label">SPECIAL EVENTS</div>
+            <button class="test-btn" onclick="testRedTransition()">Start Red Transition</button>
+            <button class="test-btn" onclick="testRedMode()">Full Red Mode + Shake</button>
+            <button class="test-btn" onclick="testEndRed()">End Red Mode</button>
+            <button class="test-btn" onclick="testBlogMode()">Transform to Blog</button>
+        </div>
+
+        <div class="test-section">
+            <div class="test-label">DISTANT CIRCLE JOURNEY</div>
+            <button class="test-btn" onclick="testDistantCircleProgress(0)">Circle: 1 Hour Away</button>
+            <button class="test-btn" onclick="testDistantCircleProgress(0.25)">Circle: 45 Min Away</button>
+            <button class="test-btn" onclick="testDistantCircleProgress(0.5)">Circle: 30 Min Away</button>
+            <button class="test-btn" onclick="testDistantCircleProgress(0.75)">Circle: 15 Min Away</button>
+            <button class="test-btn" onclick="testDistantCircleProgress(0.9)">Circle: 6 Min Away</button>
+            <button class="test-btn" onclick="testDistantCircleProgress(1)">Circle: Arrived!</button>
+            <button class="test-btn" onclick="resetDistantCircle()">Reset Circle</button>
+        </div>
+
+        <div class="test-section">
+            <div class="test-label">ANIMATIONS</div>
+            <button class="test-btn" onclick="testGhostQuote()">Show Ghost Quote</button>
+            <button class="test-btn" onclick="testRuneFlash(0)">Dramatic Rune 1 Reveal</button>
+            <button class="test-btn" onclick="testRuneFlash(1)">Dramatic Rune 2 Reveal</button>
+        </div>
+
+        <div class="test-section">
+            <div class="test-label">LOGS</div>
+            <button class="test-btn" onclick="EventLogger.download()">📥 Download Logs</button>
+            <button class="test-btn" onclick="console.log(EventLogger.getReport())">📊 Show Report</button>
+            <button class="test-btn" onclick="EventLogger.clear()">🗑️ Clear Logs</button>
+        </div>
+
+        <div class="test-section">
+            <div class="test-label">RESET</div>
+            <button class="test-btn" onclick="testReset()">Reset Everything</button>
+        </div>
+    </div>
+
     <script>
         // ==================== DATA ====================
         const SEGMENTS = [
             {
-                time: '2025-10-20T19:04:00+08:00',
+                time: '2025-10-20T19:04:00+08:00', // Singapore timezone
                 text: `Our preparation: The Gathering of the Three
 
 For three nights we keep silence. No salt, no meat, no touching iron. We sleep with birch ash on our eyelids, water in bowls under our beds. Dreams twist, but none of us cry out. They pass like animals through high grass, seen only by the sway they leave.
@@ -874,7 +1063,7 @@ East for the bitterness that draws a border and drains will.
 West for the faint green light that remembers the dead.`
             },
             {
-                time: '2025-10-20T20:09:00+08:00',
+                time: '2025-10-20T20:09:00+08:00', // Singapore timezone
                 text: `The three offerings, outside her Realm
 
 • Baba walks north, to the storm-felled grove, and pulled Sedmoključ. A raskovnik root prepared against the grain. Pickled in brine from a Dead Spring and bound with seven red threads, each knot tied on a waning moon. It forces the spirit hinge to open, then bites shut beneath the foot that trespasses. It tastes of vows and salt; it is not born clean in Muma's world.
@@ -886,7 +1075,7 @@ West for the faint green light that remembers the dead.`
 We return before dusk; our soles bleed; we say nothing. We are no longer women. We are vessels.`
             },
             {
-                time: '2025-10-20T21:06:00+08:00',
+                time: '2025-10-20T21:06:00+08:00', // Singapore timezone
                 text: `The procession and the altar
 
 We walk to Zubi Šume, the Forest's Teeth. The stones rise pale like jaw and molar; sound thins as if swallowed. We find our spot. In the centre we build what carries the sound of worlds:
@@ -905,7 +1094,7 @@ Došla si kad zadnje srce pukne.
 Pojavi se. Uništi. Ugrizi.`
             },
             {
-                time: '2025-10-21T07:00:00+08:00',
+                time: '2025-10-21T07:00:00+08:00', // Singapore timezone - Segment 4 available only at exactly 07:00
                 text: `Presence
 
 The woods goes silent. Breath like wet bark; moss-sweet rot; a weight behind the eyes. Where she stands, bark takes the idea of a woman; hair hangs like wet roots; eyes keep the colour of unlit resin. She is not afraid of us. She is curious, then annoyed, as if a fly has landed on the skin of the forest.
@@ -994,6 +1183,7 @@ The forest exhales. Your room settles. For the first time in years, you are stil
         ];
 
         // ==================== STATE ====================
+        let isTestMode = false;
         let singaporeTime = new Date();
         let availableSegment = -1;
         let completedSegments = [];
@@ -1002,8 +1192,10 @@ The forest exhales. Your room settles. For the first time in years, you are stil
         let isBlogMode = false;
         let shootingInterval = null;
         let lastCircleProgress = -1; // Track last animation progress
-        let pastSegmentsDelivered = false;
-        let deliveryQueue = [];
+        
+        // Queue system for past segments
+        let segmentQueue = [];
+        let isProcessingQueue = false;
 
         // ==================== LOGGING SYSTEM ====================
         const EventLogger = {
@@ -1123,6 +1315,13 @@ The forest exhales. Your room settles. For the first time in years, you are stil
             isBlogMode = true;
         }
 
+        function activateTestMode() {
+            isTestMode = true;
+            document.getElementById('testIndicator').classList.add('active');
+            document.getElementById('testControls').classList.add('active');
+            console.log('🔧 Test Mode Active');
+        }
+
         // ==================== TIME MANAGEMENT ====================
         async function getSingaporeTime() {
             try {
@@ -1215,85 +1414,87 @@ The forest exhales. Your room settles. For the first time in years, you are stil
 
         // ==================== SEGMENT AVAILABILITY ====================
         function checkSegmentAvailability() {
-            if (isBlogMode) return;
+            if (isBlogMode || isTestMode) return;
 
-            // On first load, check all segments and queue past ones
-            if (!pastSegmentsDelivered) {
-                let pastSegments = [];
-                
-                for (let i = 0; i < SEGMENTS.length; i++) {
-                    if (completedSegments.includes(i)) continue;
-                    
-                    // Special handling for segment 4 (index 3)
-                    if (i === 3) {
-                        // Segment 4 only available on Oct 21 at 7:00
-                        const oct21At7 = new Date('2025-10-21T07:00:00+08:00');
-                        if (singaporeTime >= oct21At7) {
-                            pastSegments.push(i);
-                        }
-                        continue;
-                    }
-                    
-                    const segmentTime = new Date(SEGMENTS[i].time);
-                    if (singaporeTime >= segmentTime) {
-                        pastSegments.push(i);
-                    }
-                }
-                
-                if (pastSegments.length > 0) {
-                    console.log(`📦 Found ${pastSegments.length} past segments to deliver`);
-                    deliveryQueue = pastSegments;
-                    deliverNextInQueue();
-                }
-                
-                pastSegmentsDelivered = true;
-                return;
-            }
+            // Don't check for new segments if we're processing the queue
+            if (isProcessingQueue) return;
 
-            // Normal check for current time matches
             for (let i = 0; i < SEGMENTS.length; i++) {
                 if (completedSegments.includes(i)) continue;
-                if (availableSegment === i) continue;
-                
-                // Special handling for segment 4
-                if (i === 3) {
-                    const oct21At7 = new Date('2025-10-21T07:00:00+08:00');
-                    if (singaporeTime >= oct21At7 && singaporeTime < new Date(oct21At7.getTime() + 60000)) {
-                        console.log(`✅ Segment 4 now available!`);
-                        makeSegmentAvailable(i);
-                        break;
-                    }
-                    continue;
-                }
                 
                 const segmentTime = new Date(SEGMENTS[i].time);
                 
-                // Check if we're within 1 minute of segment time
-                if (singaporeTime >= segmentTime && singaporeTime < new Date(segmentTime.getTime() + 60000)) {
-                    console.log(`✅ Segment ${i + 1} now available!`);
+                console.log(`Checking segment ${i + 1}:`, {
+                    scheduledTime: segmentTime.toLocaleString(),
+                    currentTime: singaporeTime.toLocaleString(),
+                    isPast: singaporeTime >= segmentTime
+                });
+                
+                if (singaporeTime >= segmentTime) {
+                    console.log(`✅ Segment ${i + 1} should be available!`);
                     makeSegmentAvailable(i);
                     break;
                 }
             }
+
+            updateGlowIntensity();
+            updateDistantCircleJourney();
         }
 
-        // Deliver queued segments one by one with 1 minute delay
-        async function deliverNextInQueue() {
-            if (deliveryQueue.length === 0) return;
-            if (isDisplayingMessage) {
-                // Wait and retry
-                setTimeout(deliverNextInQueue, 5000);
+        // ==================== QUEUE SYSTEM ====================
+        function queuePastSegments() {
+            if (isBlogMode || isTestMode) return;
+            
+            console.log('🔍 Checking for past segments to queue...');
+            
+            const pastSegments = [];
+            for (let i = 0; i < SEGMENTS.length; i++) {
+                if (completedSegments.includes(i)) continue;
+                
+                const segmentTime = new Date(SEGMENTS[i].time);
+                if (singaporeTime >= segmentTime) {
+                    pastSegments.push(i);
+                    console.log(`📋 Queuing past segment ${i + 1}`);
+                }
+            }
+            
+            if (pastSegments.length > 0) {
+                segmentQueue = pastSegments;
+                console.log(`📋 ${pastSegments.length} past segment(s) queued for delivery`);
+                EventLogger.log('SEGMENTS_QUEUED', {
+                    count: pastSegments.length,
+                    segments: pastSegments.map(i => i + 1)
+                });
+                
+                // Start processing the queue
+                processNextQueuedSegment();
+            } else {
+                console.log('✅ No past segments to queue');
+            }
+        }
+        
+        async function processNextQueuedSegment() {
+            if (segmentQueue.length === 0) {
+                isProcessingQueue = false;
+                checkSegmentAvailability();
                 return;
             }
             
-            const nextIndex = deliveryQueue.shift();
-            console.log(`📬 Delivering queued segment ${nextIndex + 1}`);
-            makeSegmentAvailable(nextIndex);
+            isProcessingQueue = true;
+            const segmentIndex = segmentQueue.shift();
             
-            // If more in queue, schedule next delivery in 1 minute
-            if (deliveryQueue.length > 0) {
-                setTimeout(deliverNextInQueue, 60000);
-            }
+            console.log(`🎬 Processing queued segment ${segmentIndex + 1} (${segmentQueue.length} remaining in queue)`);
+            
+            // Show short final-stage moon full-glow for about 10 seconds
+            makeSegmentAvailable(segmentIndex);
+            animateDistantCircle(1.0); // Fully arrived state
+            
+            await sleep(10000); // 10 seconds of full glow
+            
+            // Auto-display message (no user click needed for queued items)
+            // Note: displayMessage will call continueAfterMessage, which calls this function again
+            // The 60-second spacing happens in continueAfterMessage
+            displayMessage(segmentIndex, true);
         }
 
         function updateDistantCircleJourney() {
@@ -1304,13 +1505,44 @@ The forest exhales. Your room settles. For the first time in years, you are stil
 
             // If segment is available, show it as fully arrived
             if (availableSegment !== -1) {
-                animateDistantCircle(1.0); // Full glow
+                // Show circle at full size/intensity for available segment
+                animateDistantCircle(1.0); // Jump to arrived state
                 return;
             }
 
-            // No animation - circle stays hidden until segment is available
-            resetDistantCircle();
-        }
+            // In test mode, circle is manually controlled
+            if (isTestMode) return;
+            
+            // Find next segment
+            let nextSegmentTime = null;
+            for (let i = 0; i < SEGMENTS.length; i++) {
+                if (!completedSegments.includes(i)) {
+                    nextSegmentTime = new Date(SEGMENTS[i].time);
+                    break;
+                }
+            }
+
+            if (!nextSegmentTime) {
+                resetDistantCircle();
+                return;
+            }
+
+            const timeUntil = nextSegmentTime - singaporeTime;
+            const oneHour = 1 * 3600000; // 1 hour in milliseconds
+
+            // If time has passed, jump to arrived state immediately
+            if (timeUntil <= 0) {
+                animateDistantCircle(1.0); // Fully arrived
+            }
+            // Show animation when within 1 hour
+            else if (timeUntil <= oneHour) {
+                const progress = 1 - (timeUntil / oneHour);
+                animateDistantCircle(progress);
+            } 
+            // Too far away, reset
+            else {
+                resetDistantCircle();
+            }
         }
 
         function resetDistantCircle() {
@@ -1340,7 +1572,7 @@ The forest exhales. Your room settles. For the first time in years, you are stil
 
         function animateDistantCircle(progress) {
             // Only update if progress changed significantly (reduce unnecessary updates)
-            if (Math.abs(progress - lastCircleProgress) < 0.005) {
+            if (Math.abs(progress - lastCircleProgress) < 0.005 && !isTestMode) {
                 return; // Skip if less than 0.5% change
             }
             lastCircleProgress = progress;
@@ -1448,11 +1680,11 @@ The forest exhales. Your room settles. For the first time in years, you are stil
             const ring = document.getElementById('receiveRing');
             ring.classList.add('ready', 'intense');
             
+            console.log('Ring classes:', ring.className);
+            console.log('Ring element:', ring);
+            
             const distantCircle = document.getElementById('distantCircle');
             distantCircle.classList.add('intense');
-            
-            // Show moon at full glow immediately (no animation)
-            animateDistantCircle(1.0);
             
             // Log segment availability
             EventLogger.log('SEGMENT_AVAILABLE', {
@@ -1462,12 +1694,40 @@ The forest exhales. Your room settles. For the first time in years, you are stil
             });
         }
 
-        // Glow intensity is now handled directly in makeSegmentAvailable
+        function updateGlowIntensity() {
+            if (availableSegment !== -1 || isTestMode) return;
+
+            for (let i = 0; i < SEGMENTS.length; i++) {
+                if (completedSegments.includes(i)) continue;
+                
+                const segmentTime = new Date(SEGMENTS[i].time);
+                const diff = segmentTime - singaporeTime;
+                const hours = diff / 3600000;
+
+                const ring = document.getElementById('receiveRing');
+                const distantCircle = document.getElementById('distantCircle');
+                
+                if (hours < 0.5) { // Less than 30 minutes
+                    ring.classList.add('intense');
+                    distantCircle.classList.add('intense');
+                    distantCircle.style.opacity = '0.5';
+                } else if (hours < 1) { // Less than 1 hour
+                    ring.classList.remove('intense');
+                    distantCircle.classList.remove('intense');
+                    distantCircle.style.opacity = '0.35';
+                } else {
+                    ring.classList.remove('intense');
+                    distantCircle.classList.remove('intense');
+                    distantCircle.style.opacity = '0.2';
+                }
+                break;
+            }
+        }
 
         // ==================== MESSAGE DISPLAY ====================
         let messageCloseTimeout = null;
 
-        async function displayMessage(index) {
+        async function displayMessage(index, isQueued = false) {
             if (isDisplayingMessage) return;
             isDisplayingMessage = true;
 
@@ -1475,7 +1735,8 @@ The forest exhales. Your room settles. For the first time in years, you are stil
             EventLogger.log('SEGMENT_CLICKED', {
                 segmentIndex: index,
                 segmentNumber: index + 1,
-                clickTime: singaporeTime.toISOString()
+                clickTime: singaporeTime.toISOString(),
+                isQueued: isQueued
             });
 
             const display = document.getElementById('messageDisplay');
@@ -1499,32 +1760,39 @@ The forest exhales. Your room settles. For the first time in years, you are stil
                 segmentNumber: index + 1
             });
             
-            // Make message clickable to skip wait
-            let messageClicked = false;
-            display.style.cursor = 'pointer';
+            // After reveal, make the message clickable
+            display.dataset.closeable = 'true';
+            textElement.style.cursor = 'pointer';
             
+            // Set up click handler to close immediately
+            let messageWasClicked = false;
             const clickHandler = () => {
-                messageClicked = true;
-                display.style.cursor = 'default';
+                messageWasClicked = true;
+                if (messageCloseTimeout) {
+                    clearTimeout(messageCloseTimeout);
+                    messageCloseTimeout = null;
+                }
+                display.classList.remove('active');
+                textElement.style.cursor = '';
+                continueAfterMessage(index);
             };
             
-            display.addEventListener('click', clickHandler);
+            // Add click handler
+            textElement.addEventListener('click', clickHandler);
             
-            // Wait for click or 2 minutes timeout
-            const displayTime = 120000; // 2 minutes
-            const startTime = Date.now();
-            
-            while (!messageClicked && (Date.now() - startTime) < displayTime) {
-                await sleep(100);
-            }
-            
-            // Clean up click handler
-            display.removeEventListener('click', clickHandler);
-            display.style.cursor = 'default';
-            
-            // Hide message
-            display.classList.remove('active');
-            
+            // Auto-close after exactly 2 minutes (5 seconds in test mode)
+            const displayTime = isTestMode ? 5000 : 120000; // 2 minutes
+            messageCloseTimeout = setTimeout(() => {
+                if (!messageWasClicked) {
+                    textElement.removeEventListener('click', clickHandler);
+                    display.classList.remove('active');
+                    textElement.style.cursor = '';
+                    continueAfterMessage(index);
+                }
+            }, displayTime);
+        }
+        
+        async function continueAfterMessage(index) {
             // Dramatic rune reveal
             await dramaticRuneReveal(index);
             
@@ -1548,8 +1816,16 @@ The forest exhales. Your room settles. For the first time in years, you are stil
             // Reset circle to normal position after message complete
             resetDistantCircle();
             
-            // Check for next segment (will start 2-hour animation if applicable)
-            checkSegmentAvailability();
+            // Check if there are more queued segments
+            if (segmentQueue.length > 0) {
+                // Wait 60 seconds before next queued segment
+                console.log(`⏳ Waiting 60 seconds before next queued segment...`);
+                await sleep(60000); // 60 seconds between queued deliveries
+                processNextQueuedSegment();
+            } else {
+                // Check for next segment (will start 2-hour animation if applicable)
+                checkSegmentAvailability();
+            }
         }
 
         function showRuneMessage(index) {
@@ -1620,8 +1896,8 @@ The forest exhales. Your room settles. For the first time in years, you are stil
             
             await sleep(600);
             
-            // Show gibberish for 5-7 seconds
-            const gibberishDuration = 5000 + Math.random() * 2000; // 5-7 seconds
+            // Show gibberish for 3 seconds
+            const gibberishDuration = 3000; // 3 seconds as specified
             const gibberishChars = 'αβγδεζηθικλμνξοπρστυφχψω∴∵∞∑∏∫√∂∇ᚠᚢᚦᚨᚱᚲᚷᚹᚺᚾᛁᛃᛇᛈᛉᛊᛏᛒᛖᛗᛚᛜᛞᛟ';
             const startTime = Date.now();
             
@@ -1673,31 +1949,52 @@ The forest exhales. Your room settles. For the first time in years, you are stil
 
         // ==================== SPECIAL EVENTS ====================
         function checkSpecialEvents() {
-            if (isBlogMode) return;
+            if (isBlogMode || isTestMode) return;
 
-            // Check if it's October 21, 2025
             const date = singaporeTime.getDate();
             const month = singaporeTime.getMonth() + 1;
             const year = singaporeTime.getFullYear();
-            
-            if (!(year === 2025 && month === 10 && date === 21)) return;
-
             const hour = singaporeTime.getHours();
             const minute = singaporeTime.getMinutes();
             
-            // 06:00-06:29 - Full red mode (only if page is open during this time)
+            // October 22, 00:01 - Transform to blog permanently
+            if (year === 2025 && month === 10 && date === 22 && hour === 0 && minute >= 1) {
+                if (!isBlogMode) {
+                    console.log('📅 October 22, 00:01 reached - transforming to blog mode');
+                    transformToBlog();
+                    return;
+                }
+            }
+            
+            // Check if it's October 21, 2025
+            if (!(year === 2025 && month === 10 && date === 21)) return;
+            
+            // 05:55-05:59 - Red transition
+            if (hour === 5 && minute >= 55) {
+                if (!isRedMode) {
+                    startRedTransition();
+                }
+            }
+            
+            // 06:00-06:29 - Full red mode
             if (hour === 6 && minute >= 0 && minute < 30) {
                 if (!document.body.classList.contains('red-mode')) {
                     activateRedMode();
                 }
             }
             
-            // 06:30 or later - End red
-            else if (hour === 6 && minute >= 30) {
+            // 06:30 - End red
+            if (hour === 6 && minute >= 30) {
                 if (document.body.classList.contains('red-mode')) {
                     deactivateRedMode();
                 }
             }
+        }
+
+        function startRedTransition() {
+            isRedMode = true;
+            EventLogger.log('RED_TRANSITION_START');
+            console.log('🔴 Starting red transition');
         }
 
         function activateRedMode() {
@@ -1772,6 +2069,79 @@ The forest exhales. Your room settles. For the first time in years, you are stil
             console.log('📄 Transformed to blog (permanent)');
         }
 
+        // ==================== TEST FUNCTIONS ====================
+        function testMakeAvailable(index) {
+            makeSegmentAvailable(index);
+            console.log(`Made segment ${index + 1} available`);
+        }
+
+        function testGlowIntensity(level) {
+            const ring = document.getElementById('receiveRing');
+            const distantCircle = document.getElementById('distantCircle');
+            
+            ring.classList.remove('intense');
+            distantCircle.classList.remove('intense');
+            
+            if (level === 'subtle') {
+                distantCircle.style.opacity = '0.2';
+            } else if (level === 'medium') {
+                distantCircle.style.opacity = '0.35';
+            } else if (level === 'intense') {
+                ring.classList.add('intense');
+                distantCircle.classList.add('intense');
+                distantCircle.style.opacity = '0.5';
+            }
+            
+            console.log(`Set glow to ${level}`);
+        }
+
+        function testDistantCircleProgress(progress) {
+            // Simulate distant circle at different stages (0 = far, 1 = arrived)
+            animateDistantCircle(progress);
+            console.log(`Distant circle at ${Math.round(progress * 100)}% progress`);
+        }
+
+        function testRedTransition() {
+            startRedTransition();
+        }
+
+        function testRedMode() {
+            activateRedMode();
+        }
+
+        function testEndRed() {
+            deactivateRedMode();
+        }
+
+        function testBlogMode() {
+            transformToBlog();
+        }
+
+        function testGhostQuote() {
+            showGhostQuote();
+        }
+
+        function testRuneFlash(index) {
+            dramaticRuneReveal(index);
+        }
+
+        function testReset() {
+            localStorage.removeItem('isBlogMode');
+            location.reload();
+        }
+        
+        function testQueueSegments() {
+            // Manually trigger queue check
+            queuePastSegments();
+            console.log('📋 Queue test triggered');
+        }
+        
+        function testClearQueue() {
+            segmentQueue = [];
+            isProcessingQueue = false;
+            console.log('🗑️ Queue cleared');
+        }
+
         // ==================== UTILITY ====================
         function sleep(ms) {
             return new Promise(resolve => setTimeout(resolve, ms));
@@ -1779,7 +2149,11 @@ The forest exhales. Your room settles. For the first time in years, you are stil
 
         // ==================== MAIN LOOP ====================
         async function mainLoop() {
-            singaporeTime = await getSingaporeTime();
+            if (!isTestMode) {
+                singaporeTime = await getSingaporeTime();
+            } else {
+                singaporeTime.setSeconds(singaporeTime.getSeconds() + 1);
+            }
             
             updateClocks();
             checkSegmentAvailability();
@@ -1800,8 +2174,13 @@ The forest exhales. Your room settles. For the first time in years, you are stil
                 return; // Skip main loop and ghost quotes in blog mode
             }
             
-            // Immediately check for available segments on load
-            checkSegmentAvailability();
+            // Queue any past segments on page load
+            queuePastSegments();
+            
+            // If no segments were queued, check for available segments normally
+            if (segmentQueue.length === 0) {
+                checkSegmentAvailability();
+            }
             
             setInterval(mainLoop, 1000);
             
