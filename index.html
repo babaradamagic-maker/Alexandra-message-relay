@@ -27,9 +27,12 @@
     6. Segment delivery schedule:
        - Segment 1: 20 Oct 2025, 19:04 SGT
        - Segment 2: 20 Oct 2025, 20:09 SGT
-       - Segment 3: 20 Oct 2025, 21:06 SGT
-       - Segment 4: 21 Oct 2025, 07:00 SGT (available only at exactly 07:00)
-    7. Blog transformation:
+       - Segment 3: 21 Oct 2025, 05:30 SGT
+       - Segment 4: 21 Oct 2025, 06:30 SGT
+    7. "Receive" text visibility:
+       - Displays when segment is available
+       - Disappears immediately when message starts rendering
+    8. Blog transformation:
        - 22 Oct 2025, 00:01 SGT: page becomes blog page (permanent state)
 -->
 <html lang="en">
@@ -420,6 +423,11 @@
 
         .receive-ring.ready .receive-text {
             opacity: 1;
+        }
+        
+        /* Hide "Receive" text when message is being displayed */
+        body:has(.message-display.active) .receive-text {
+            opacity: 0 !important;
         }
 
         /* Intensity variations */
@@ -1075,7 +1083,7 @@ West for the faint green light that remembers the dead.`
 We return before dusk; our soles bleed; we say nothing. We are no longer women. We are vessels.`
             },
             {
-                time: '2025-10-20T21:06:00+08:00', // Singapore timezone
+                time: '2025-10-21T05:30:00+08:00', // Singapore timezone - Oct 21, 05:30 SGT
                 text: `The procession and the altar
 
 We walk to Zubi Šume, the Forest's Teeth. The stones rise pale like jaw and molar; sound thins as if swallowed. We find our spot. In the centre we build what carries the sound of worlds:
@@ -1094,7 +1102,7 @@ Došla si kad zadnje srce pukne.
 Pojavi se. Uništi. Ugrizi.`
             },
             {
-                time: '2025-10-21T07:00:00+08:00', // Singapore timezone - Segment 4 available only at exactly 07:00
+                time: '2025-10-21T06:30:00+08:00', // Singapore timezone - Segment 4 available at 06:30 on 21 Oct
                 text: `Presence
 
 The woods goes silent. Breath like wet bark; moss-sweet rot; a weight behind the eyes. Where she stands, bark takes the idea of a woman; hair hangs like wet roots; eyes keep the colour of unlit resin. She is not afraid of us. She is curious, then annoyed, as if a fly has landed on the skin of the forest.
@@ -1680,6 +1688,12 @@ The forest exhales. Your room settles. For the first time in years, you are stil
             const ring = document.getElementById('receiveRing');
             ring.classList.add('ready', 'intense');
             
+            // Show "Receive" text explicitly
+            const receiveText = document.querySelector('.receive-text');
+            if (receiveText) {
+                receiveText.style.opacity = ''; // Reset to CSS default
+            }
+            
             console.log('Ring classes:', ring.className);
             console.log('Ring element:', ring);
             
@@ -1742,6 +1756,12 @@ The forest exhales. Your room settles. For the first time in years, you are stil
             const display = document.getElementById('messageDisplay');
             const textElement = document.getElementById('messageText');
             const ring = document.getElementById('receiveRing');
+            const receiveText = document.querySelector('.receive-text');
+            
+            // Hide "Receive" text immediately when message starts
+            if (receiveText) {
+                receiveText.style.opacity = '0';
+            }
             
             ring.classList.remove('ready', 'intense');
             document.getElementById('distantCircle').classList.remove('intense');
