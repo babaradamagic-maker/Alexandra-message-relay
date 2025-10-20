@@ -1499,9 +1499,28 @@ The forest exhales. Your room settles. For the first time in years, you are stil
                 segmentNumber: index + 1
             });
             
-            // Display for 2 minutes
+            // Make message clickable to skip wait
+            let messageClicked = false;
+            display.style.cursor = 'pointer';
+            
+            const clickHandler = () => {
+                messageClicked = true;
+                display.style.cursor = 'default';
+            };
+            
+            display.addEventListener('click', clickHandler);
+            
+            // Wait for click or 2 minutes timeout
             const displayTime = 120000; // 2 minutes
-            await sleep(displayTime);
+            const startTime = Date.now();
+            
+            while (!messageClicked && (Date.now() - startTime) < displayTime) {
+                await sleep(100);
+            }
+            
+            // Clean up click handler
+            display.removeEventListener('click', clickHandler);
+            display.style.cursor = 'default';
             
             // Hide message
             display.classList.remove('active');
@@ -1633,26 +1652,6 @@ The forest exhales. Your room settles. For the first time in years, you are stil
             // Reveal full text instantly
             element.textContent = text;
             element.style.animation = '';
-            
-            // Make message clickable
-            let messageClicked = false;
-            element.style.cursor = 'pointer';
-            
-            const clickHandler = () => {
-                messageClicked = true;
-                element.style.cursor = 'default';
-                element.removeEventListener('click', clickHandler);
-            };
-            
-            element.addEventListener('click', clickHandler);
-            
-            // Wait for click or timeout
-            const startTime = Date.now();
-            while (!messageClicked && (Date.now() - startTime) < fadeOutDuration) {
-                await sleep(100);
-            }
-            
-            element.removeEventListener('click', clickHandler);
         }
 
         // ==================== RUNE INTERACTION ====================
