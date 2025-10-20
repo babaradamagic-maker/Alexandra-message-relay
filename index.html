@@ -36,6 +36,11 @@
             color: #2a2a2a;
         }
 
+        /* Hide stars in blog mode */
+        body.blog-mode .stars {
+            display: none;
+        }
+
         /* Red mode during climax */
         body.red-mode {
             background: radial-gradient(ellipse at center, #2a0505 0%, #150000 70%, #000000 100%);
@@ -78,6 +83,24 @@
             background: #d4af37;
             border-radius: 50%;
             animation: twinkle 3s ease-in-out infinite;
+            box-shadow: 0 0 2px rgba(212, 175, 55, 0.8);
+        }
+
+        /* Depth layers - different brightness for depth */
+        .star.far {
+            opacity: 0.3;
+            animation-duration: 4s;
+        }
+
+        .star.mid {
+            opacity: 0.6;
+            animation-duration: 3s;
+        }
+
+        .star.near {
+            opacity: 0.9;
+            animation-duration: 2s;
+            box-shadow: 0 0 3px rgba(212, 175, 55, 1);
         }
 
         .star:nth-child(odd) {
@@ -86,6 +109,10 @@
 
         .star:nth-child(3n) {
             animation-delay: 2s;
+        }
+
+        .star:nth-child(5n) {
+            animation-delay: 0.5s;
         }
 
         @keyframes twinkle {
@@ -99,9 +126,61 @@
             }
         }
 
+        /* Preserve star brightness during animations */
+        .star.far {
+            animation-name: twinkleFar;
+        }
+
+        .star.mid {
+            animation-name: twinkleMid;
+        }
+
+        .star.near {
+            animation-name: twinkleNear;
+        }
+
+        @keyframes twinkleFar {
+            0%, 100% { 
+                opacity: 0.2;
+                transform: scale(1);
+            }
+            50% { 
+                opacity: 0.5;
+                transform: scale(1.3);
+            }
+        }
+
+        @keyframes twinkleMid {
+            0%, 100% { 
+                opacity: 0.4;
+                transform: scale(1);
+            }
+            50% { 
+                opacity: 0.8;
+                transform: scale(1.5);
+            }
+        }
+
+        @keyframes twinkleNear {
+            0%, 100% { 
+                opacity: 0.7;
+                transform: scale(1);
+            }
+            50% { 
+                opacity: 1;
+                transform: scale(1.8);
+            }
+        }
+
         /* Red stars during climax */
         body.red-mode .star {
             background: #8b0000;
+            box-shadow: 0 0 4px rgba(139, 0, 0, 0.9);
+        }
+
+        body.red-mode .star.near {
+            background: #cd0000;
+            box-shadow: 0 0 6px rgba(205, 0, 0, 1);
         }
 
         /* Header info */
@@ -185,6 +264,8 @@
             width: 600px;
             height: 600px;
             z-index: 1;
+            transition: width 30s ease-out, height 30s ease-out, 
+                        top 30s ease-out, transform 30s ease-out;
         }
 
         .distant-circle {
@@ -199,9 +280,10 @@
                 0 0 100px rgba(212, 175, 55, 0.3),
                 inset 0 0 100px rgba(212, 175, 55, 0.1),
                 0 150px 200px rgba(212, 175, 55, 0.15);
-            transition: width 1s ease-out, height 1s ease-out, opacity 1s ease-out, 
-                        border-width 1s ease-out, box-shadow 1s ease-out, 
-                        top 1s ease-out, transform 1s ease-out;
+            transition: opacity 5s ease-out, 
+                        border-width 5s ease-out, 
+                        box-shadow 5s ease-out,
+                        filter 5s ease-out;
         }
 
         .distant-circle::after {
@@ -240,7 +322,7 @@
             transform: translate(-50%, -50%);
             width: 400px;
             height: 400px;
-            transition: width 1s ease-out, height 1s ease-out;
+            transition: width 30s ease-out, height 30s ease-out;
         }
 
         .distant-line {
@@ -1076,6 +1158,7 @@ The forest exhales. Your room settles. For the first time in years, you are stil
         let isRedMode = false;
         let isBlogMode = false;
         let shootingInterval = null;
+        let lastCircleProgress = -1; // Track last animation progress
 
         // ==================== LOGGING SYSTEM ====================
         const EventLogger = {
@@ -1227,16 +1310,41 @@ The forest exhales. Your room settles. For the first time in years, you are stil
         // ==================== STARS ====================
         function createStars() {
             const container = document.getElementById('stars');
-            for (let i = 0; i < 120; i++) {
+            
+            // Create stars with depth layers
+            for (let i = 0; i < 150; i++) { // Increased from 120 to 150
                 const star = document.createElement('div');
                 star.className = 'star';
+                
+                // Position
                 star.style.left = Math.random() * 100 + '%';
                 star.style.top = Math.random() * 100 + '%';
-                const size = Math.random() * 2.5 + 0.5;
-                star.style.width = size + 'px';
-                star.style.height = size + 'px';
-                star.style.animationDuration = (Math.random() * 4 + 2) + 's';
+                
+                // Assign depth layer (far: 50%, mid: 35%, near: 15%)
+                const depthRoll = Math.random();
+                if (depthRoll < 0.5) {
+                    star.classList.add('far');
+                    // Far stars: smaller
+                    const size = Math.random() * 1.5 + 0.3;
+                    star.style.width = size + 'px';
+                    star.style.height = size + 'px';
+                } else if (depthRoll < 0.85) {
+                    star.classList.add('mid');
+                    // Mid stars: medium
+                    const size = Math.random() * 2 + 0.8;
+                    star.style.width = size + 'px';
+                    star.style.height = size + 'px';
+                } else {
+                    star.classList.add('near');
+                    // Near stars: larger, brighter
+                    const size = Math.random() * 2.5 + 1.5;
+                    star.style.width = size + 'px';
+                    star.style.height = size + 'px';
+                }
+                
+                // Randomize animation timing for natural feel
                 star.style.animationDelay = Math.random() * 4 + 's';
+                
                 container.appendChild(star);
             }
         }
@@ -1336,10 +1444,23 @@ The forest exhales. Your room settles. For the first time in years, you are stil
             
             circle.style.opacity = '0.2';
             circle.style.borderWidth = '3px';
+            circle.style.boxShadow = `
+                0 0 100px rgba(212, 175, 55, 0.3),
+                inset 0 0 100px rgba(212, 175, 55, 0.1),
+                0 150px 200px rgba(212, 175, 55, 0.15)
+            `;
             circle.classList.remove('approaching');
+            
+            lastCircleProgress = -1; // Reset progress tracking
         }
 
         function animateDistantCircle(progress) {
+            // Only update if progress changed significantly (reduce unnecessary updates)
+            if (Math.abs(progress - lastCircleProgress) < 0.005 && !isTestMode) {
+                return; // Skip if less than 0.5% change
+            }
+            lastCircleProgress = progress;
+            
             const universe = document.querySelector('.background-universe');
             const circle = document.getElementById('distantCircle');
             const energy = document.querySelector('.distant-energy');
@@ -1357,25 +1478,55 @@ The forest exhales. Your room settles. For the first time in years, you are stil
             const energyCurrentSize = energyStartSize * scaleFactor;
             
             // Position: The circle should stay anchored so it doesn't go below the front ring
-            // Front ring is at bottom: 35% from bottom = 65% from top
-            // We want the distant circle to stay above or aligned with this
-            const minTop = 65; // Don't go below front ring
+            const minTop = 65;
             const startTop = 50;
-            const endTop = Math.max(50, minTop); // Keep it centered or above
+            const endTop = Math.max(50, minTop);
             const currentTop = startTop + (endTop - startTop) * easeInOut(progress);
             
             // Adjust transform to keep circle properly centered as it grows
-            const translateY = -50 + (10 * progress); // Move slightly up as it grows
+            const translateY = -50 + (10 * progress);
             
             // Opacity: grows from 0.2 to 1
             const opacity = 0.2 + (0.8 * progress);
             
-            // Border: grows from 3px to 8px
-            const borderSize = 3 + (5 * progress);
+            // Border: grows from 3px to 12px (increased from 8px)
+            const borderSize = 3 + (9 * progress);
             
-            // Glow intensity
-            const glowSize = 100 + (150 * progress);
-            const glowOpacity = 0.3 + (0.7 * progress);
+            // Enhanced glow intensity - much stronger
+            const baseGlowSize = 150 + (300 * progress); // Increased from 100-250
+            const baseGlowOpacity = 0.5 + (0.5 * progress); // Increased from 0.3-1.0
+            
+            // Check if within 10 minutes (progress > 0.833)
+            const within10Min = progress > 0.833;
+            
+            // Color mixing for final approach - purple and red hues
+            let boxShadowStyle;
+            if (within10Min) {
+                // Calculate intensity of purple/red (increases as we get closer)
+                const finalApproachProgress = (progress - 0.833) / 0.167; // 0 to 1 in last 10 min
+                
+                // Mix gold with purple and red
+                const purpleIntensity = 0.3 * finalApproachProgress;
+                const redIntensity = 0.4 * finalApproachProgress;
+                
+                boxShadowStyle = `
+                    0 0 ${baseGlowSize}px rgba(212, 175, 55, ${baseGlowOpacity}),
+                    0 0 ${baseGlowSize * 0.8}px rgba(138, 43, 226, ${purpleIntensity}),
+                    0 0 ${baseGlowSize * 0.6}px rgba(220, 20, 60, ${redIntensity}),
+                    inset 0 0 ${baseGlowSize * 0.6}px rgba(212, 175, 55, ${baseGlowOpacity * 0.6}),
+                    inset 0 0 ${baseGlowSize * 0.4}px rgba(138, 43, 226, ${purpleIntensity * 0.5}),
+                    0 ${baseGlowSize * 2}px ${baseGlowSize * 3}px rgba(212, 175, 55, ${baseGlowOpacity * 0.4}),
+                    0 ${baseGlowSize * 1.5}px ${baseGlowSize * 2}px rgba(138, 43, 226, ${purpleIntensity * 0.3}),
+                    0 ${baseGlowSize}px ${baseGlowSize * 1.5}px rgba(220, 20, 60, ${redIntensity * 0.3})
+                `;
+            } else {
+                // Normal gold glow - but more intense
+                boxShadowStyle = `
+                    0 0 ${baseGlowSize}px rgba(212, 175, 55, ${baseGlowOpacity}),
+                    inset 0 0 ${baseGlowSize * 0.6}px rgba(212, 175, 55, ${baseGlowOpacity * 0.6}),
+                    0 ${baseGlowSize * 2}px ${baseGlowSize * 3}px rgba(212, 175, 55, ${baseGlowOpacity * 0.4})
+                `;
+            }
             
             // Apply styles to universe/circle
             universe.style.width = currentSize + 'px';
@@ -1385,18 +1536,14 @@ The forest exhales. Your room settles. For the first time in years, you are stil
             
             circle.style.opacity = opacity;
             circle.style.borderWidth = borderSize + 'px';
-            circle.style.boxShadow = `
-                0 0 ${glowSize}px rgba(212, 175, 55, ${glowOpacity}),
-                inset 0 0 ${glowSize * 0.5}px rgba(212, 175, 55, ${glowOpacity * 0.5}),
-                0 ${glowSize * 1.5}px ${glowSize * 2}px rgba(212, 175, 55, ${glowOpacity * 0.3})
-            `;
+            circle.style.boxShadow = boxShadowStyle;
             
             // Apply styles to energy lines
             energy.style.width = energyCurrentSize + 'px';
             energy.style.height = energyCurrentSize + 'px';
             
-            // Add intense pulse when very close (last 15 minutes = progress > 0.875)
-            if (progress > 0.875) {
+            // Add intense pulse when very close (last 15 minutes = progress > 0.75)
+            if (progress > 0.75) {
                 circle.classList.add('approaching');
             } else {
                 circle.classList.remove('approaching');
