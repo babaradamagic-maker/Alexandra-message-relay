@@ -3,222 +3,667 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>The Summoning — Act II</title>
+    <title>The Summoning - Act II</title>
+    <script src="https://cdn.tailwindcss.com"></script>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Crimson+Text:ital,wght@0,400;0,600;1,400&family=Cinzel:wght@400;600&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Uncial+Antiqua&family=Crimson+Text:ital,wght@0,400;0,600;1,400&display=swap" rel="stylesheet">
     <style>
-        * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
-        }
+        .font-uncial { font-family: 'Uncial Antiqua', cursive; }
+        .font-crimson { font-family: 'Crimson Text', serif; }
 
         body {
-            background: #f5f1e8;
-            color: #2a2a2a;
-            font-family: 'Crimson Text', serif;
-            line-height: 1.8;
-            padding: 40px 20px;
+            background: 
+                radial-gradient(ellipse at 20% 30%, rgba(101, 67, 33, 0.3) 0%, transparent 50%),
+                radial-gradient(ellipse at 80% 70%, rgba(139, 90, 43, 0.2) 0%, transparent 50%),
+                radial-gradient(ellipse at 50% 50%, rgba(160, 82, 45, 0.1) 0%, transparent 70%),
+                linear-gradient(135deg, #5c3a1f 0%, #7a4d29 25%, #9b6234 50%, #7a4d29 75%, #5c3a1f 100%);
+            background-size: 
+                800px 800px,
+                600px 600px,
+                1000px 1000px,
+                100% 100%;
+            background-position:
+                20% 30%,
+                80% 70%,
+                50% 50%,
+                0 0;
+            background-attachment: fixed;
+            color: #3a2a1a;
+            overflow-x: hidden;
+            position: relative;
+        }
+        
+        /* Add texture overlay to body */
+        body::before {
+            content: '';
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background-image: 
+                repeating-linear-gradient(0deg, transparent, transparent 2px, rgba(0, 0, 0, 0.03) 2px, rgba(0, 0, 0, 0.03) 4px),
+                repeating-linear-gradient(90deg, transparent, transparent 2px, rgba(0, 0, 0, 0.03) 2px, rgba(0, 0, 0, 0.03) 4px);
+            opacity: 0.5;
+            pointer-events: none;
+            z-index: 0;
         }
 
-        .container {
-            max-width: 800px;
-            margin: 0 auto;
+        #thunderstorm-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            pointer-events: none;
+            z-index: 1000;
+            background-color: #000;
+            opacity: 0;
+        }
+        
+        #thunderstorm-overlay.active {
+            animation: thunder-and-lightning 3s ease-out forwards;
         }
 
-        h1 {
-            font-family: 'Cinzel', serif;
-            font-size: 2.5rem;
-            margin-bottom: 0.5rem;
-            color: #1a1a1a;
-            text-align: center;
+        @keyframes thunder-and-lightning {
+            0% { opacity: 0; }
+            10% { opacity: 0.6; } /* Darkness gathers */
+            80% { opacity: 0.7; background-color: #000; }
+            81% { background-color: #f0f8ff; opacity: 1; } /* Flash 1 */
+            82% { background-color: #000; opacity: 0.7; }
+            85% { background-color: #f0f8ff; opacity: 0.9; } /* Flash 2 */
+            86% { background-color: #000; opacity: 0.6; }
+            100% { opacity: 0; }
         }
 
-        .meta {
-            text-align: center;
-            font-size: 0.95rem;
-            color: #666;
-            margin-bottom: 3rem;
-            padding-bottom: 2rem;
-            border-bottom: 1px solid #d4c5b0;
+        .flicker-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            pointer-events: none;
+            background: radial-gradient(circle at 50% 50%, transparent, rgba(30,15,0,0.3));
+            animation: flicker 8s infinite alternate;
+            z-index: 5;
         }
 
-        .meta strong {
-            display: block;
-            font-family: 'Cinzel', serif;
-            color: #4a4a4a;
-            margin-bottom: 0.5rem;
+        @keyframes flicker {
+            0%, 100% { background: radial-gradient(circle at 50% 50%, transparent 40%, rgba(30,15,0,0.3) 120%); }
+            25% { background: radial-gradient(circle at 48% 52%, transparent 42%, rgba(40,20,5,0.35) 115%); }
+            50% { background: radial-gradient(circle at 52% 48%, transparent 38%, rgba(35,18,0,0.32) 125%); }
+            75% { background: radial-gradient(circle at 50% 51%, transparent 41%, rgba(30,15,0,0.28) 118%); }
         }
 
-        h2 {
-            font-family: 'Cinzel', serif;
-            font-size: 1.5rem;
-            margin-top: 3rem;
-            margin-bottom: 1.5rem;
-            color: #1a1a1a;
+        .grimoire-page {
+            max-width: 900px;
+            margin: 3rem auto;
+            padding: 4rem;
+            background-color: #f5ead6;
+            background-image: 
+                repeating-linear-gradient(0deg, transparent, transparent 2px, rgba(139, 121, 94, 0.05) 2px, rgba(139, 121, 94, 0.05) 4px),
+                repeating-linear-gradient(90deg, transparent, transparent 2px, rgba(139, 121, 94, 0.05) 2px, rgba(139, 121, 94, 0.05) 4px),
+                repeating-radial-gradient(circle at 20% 30%, transparent 0, transparent 2px, rgba(139, 121, 94, 0.02) 2px, transparent 3px),
+                repeating-radial-gradient(circle at 80% 70%, transparent 0, transparent 2px, rgba(101, 84, 63, 0.02) 2px, transparent 3px),
+                linear-gradient(180deg, rgba(139, 121, 94, 0.03) 0%, transparent 20%, transparent 80%, rgba(101, 84, 63, 0.04) 100%);
+            border: 2px solid #c8bda9;
+            box-shadow: 
+                0 0 40px rgba(0, 0, 0, 0.5), 
+                inset 0 0 50px rgba(0,0,0,0.2),
+                inset 0 0 120px rgba(139, 121, 94, 0.15),
+                inset 3px 3px 8px rgba(139, 121, 94, 0.1),
+                inset -3px -3px 8px rgba(255, 255, 255, 0.1);
+            border-radius: 8px;
+            position: relative;
+            z-index: 10;
+            animation: fadeIn 2s ease-in-out;
         }
-
-        h2:first-of-type {
-            margin-top: 0;
+        
+        /* Add paper texture overlay */
+        .grimoire-page::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background-image: url('https://www.transparenttextures.com/patterns/old-map.png');
+            opacity: 0.15;
+            pointer-events: none;
+            border-radius: 8px;
+            z-index: 0;
         }
-
-        p {
-            margin-bottom: 1.5rem;
-            font-size: 1.1rem;
-        }
-
-        .chant {
-            font-style: italic;
-            padding: 1.5rem;
-            margin: 2rem 0;
-            background: rgba(212, 175, 55, 0.08);
-            border-left: 3px solid #d4af37;
-            font-size: 1.05rem;
-            line-height: 1.6;
+        
+        .grimoire-page > * {
+            position: relative;
+            z-index: 1;
         }
 
         @media (max-width: 768px) {
-            body {
-                padding: 20px 15px;
-            }
+            .grimoire-page { margin: 1rem; padding: 2rem; }
+        }
+        
+        @keyframes fadeIn {
+            from { opacity: 0; transform: scale(0.95); }
+            to { opacity: 1; transform: scale(1); }
+        }
 
-            h1 {
-                font-size: 2rem;
-            }
+        .drop-cap::first-letter {
+            font-family: 'Uncial Antiqua', cursive;
+            font-size: 4em;
+            float: left;
+            line-height: 0.8;
+            margin-right: 0.1em;
+            color: #8b4513;
+            text-shadow: 1px 1px 2px rgba(0,0,0,0.3);
+            animation: dropCapGlow 4s infinite alternate;
+        }
+        
+        @keyframes dropCapGlow {
+            from { color: #8b4513; }
+            to { color: #a0522d; }
+        }
+        
+        h3 {
+            font-family: 'Uncial Antiqua', cursive;
+            font-size: 2.25rem !important;
+            color: #5a3d24;
+            margin-top: 4rem !important;
+            margin-bottom: 1.5rem !important;
+            letter-spacing: 0.08em;
+            font-weight: 700;
+            display: block;
+            clear: both;
+        }
 
-            h2 {
-                font-size: 1.3rem;
-            }
+        blockquote {
+            font-style: italic;
+            border-left: 4px solid #c8bda9;
+            padding-left: 1.5rem;
+            margin: 1.5rem 0;
+            font-size: 1.25rem;
+            color: #6b4f39;
+        }
 
-            p {
-                font-size: 1rem;
+        .glowing-fungus {
+            color: #2e8b57;
+            animation: pulse-green 3s infinite;
+        }
+        @keyframes pulse-green {
+            0%, 100% { text-shadow: 0 0 5px #90ee90, 0 0 10px #90ee90; }
+            50% { text-shadow: 0 0 15px #98fb98, 0 0 25px #98fb98; }
+        }
+
+        .eyes-on-fire {
+            color: #d2691e;
+            animation: pulse-fire 2s infinite;
+        }
+        @keyframes pulse-fire {
+            0%, 100% { text-shadow: 0 0 6px #ff4500, 0 0 12px #ff4500; }
+            50% { text-shadow: 0 0 18px #ff6347, 0 0 30px #ff6347; }
+        }
+
+        .water-to-black {
+            transition: color 2s ease-in-out;
+            color: #000 !important;
+        }
+        
+        .hiss-effect {
+            display: inline-block;
+            animation: hiss 0.5s ease-in-out forwards;
+        }
+        @keyframes hiss {
+            0%, 100% { transform: skewX(0); }
+            20% { transform: skewX(15deg); }
+            40% { transform: skewX(-15deg); }
+            60% { transform: skewX(10deg); }
+            80% { transform: skewX(-10deg); }
+        }
+
+        .price-baba { color: #4a0e1c; font-weight: 600; }
+        .price-alexia { color: #8B0000; font-weight: 600; }
+        .price-gruba { color: #006400; font-weight: 600; }
+
+        /* --- NEW GHOST TEXT EFFECT STYLES --- */
+        .ghost-sentence-clone {
+            position: absolute;
+            pointer-events: none;
+            z-index: 10;
+            opacity: 0;
+            color: #3a2a1a;
+            white-space: normal;
+            max-width: 600px;
+            line-height: 1.6;
+            animation: ghostSentenceRise 12s ease-out forwards;
+        }
+
+        @keyframes ghostSentenceRise {
+            0% { 
+                opacity: 0; 
+                transform: translateY(0) scale(1);
+                filter: blur(0px);
+                text-shadow: 0 0 2px rgba(58, 42, 26, 0.3);
+            }
+            10% { 
+                opacity: 0.8; 
+                transform: translateY(-10px) scale(1);
+                filter: blur(0.5px);
+                text-shadow: 0 0 4px rgba(58, 42, 26, 0.4);
+            }
+            30% {
+                opacity: 0.6;
+                transform: translateY(-40px) scale(1.02);
+                filter: blur(1px);
+                text-shadow: 0 0 8px rgba(58, 42, 26, 0.3);
+            }
+            50% {
+                opacity: 0.5;
+                transform: translateY(-80px) scale(1.05);
+                filter: blur(2px);
+                text-shadow: 0 0 12px rgba(58, 42, 26, 0.2);
+            }
+            70% {
+                opacity: 0.3;
+                transform: translateY(-120px) scale(1.1);
+                filter: blur(4px);
+                text-shadow: 0 0 16px rgba(58, 42, 26, 0.15);
+                letter-spacing: 0.05em;
+            }
+            85% {
+                opacity: 0.15;
+                transform: translateY(-160px) scale(1.2);
+                filter: blur(6px);
+                text-shadow: 0 0 20px rgba(58, 42, 26, 0.1);
+                letter-spacing: 0.1em;
+            }
+            100% { 
+                opacity: 0; 
+                transform: translateY(-200px) scale(1.3);
+                filter: blur(10px);
+                text-shadow: 0 0 30px rgba(58, 42, 26, 0);
+                letter-spacing: 0.2em;
+            }
+        }
+
+        /* --- BLOOD DROP EFFECT STYLES --- */
+        .blood-drop {
+            position: absolute;
+            pointer-events: none;
+            z-index: 15;
+            width: 8px;
+            height: 8px;
+            background: radial-gradient(circle at 30% 30%, #8b0000, #4a0000);
+            border-radius: 50% 50% 50% 0;
+            transform: rotate(45deg);
+            opacity: 0;
+            animation: bloodDrop 4s ease-out forwards;
+            filter: blur(0.5px);
+        }
+
+        @keyframes bloodDrop {
+            0% { 
+                opacity: 0; 
+                transform: rotate(45deg) scale(0); 
+            }
+            15% { 
+                opacity: 0.9; 
+                transform: rotate(45deg) scale(1); 
+            }
+            30% {
+                opacity: 0.9;
+            }
+            100% { 
+                opacity: 0; 
+                transform: rotate(45deg) scale(1.2); 
+                filter: blur(3px);
             }
         }
     </style>
 </head>
-<body>
-    <div class="container">
-        <h1>The Summoning — Act II</h1>
-        <div class="meta">
-            <strong>The Three Prepare</strong>
-            Live documentation by Aleksandra, Council liaison<br>
-            21 October, New Moon
-        </div>
+<body class="font-crimson">
+    <div id="thunderstorm-overlay"></div>
+    <div class="flicker-overlay"></div>
 
-        <h2>Our preparation: The Gathering of the Three</h2>
+    <main class="grimoire-page">
+        <header class="text-center my-8">
+            <h1 class="font-uncial text-5xl md:text-6xl text-amber-900" style="text-shadow: 2px 2px 4px rgba(0,0,0,0.3);">The Summoning — Act II</h1>
+            <p class="text-lg italic text-amber-800 mt-2">Live documentation by Aleksandra, Council liaison</p>
+            <p class="text-md text-amber-700">21 October 2025, New Moon</p>
+        </header>
 
-        <p>For three nights we keep silence. No salt, no meat, no touching iron. We sleep with birch ash on our eyelids, water in bowls under our beds. Dreams twist, but none of us cry out. They pass like animals through high grass, seen only by the sway they leave.</p>
+        <section id="content">
+        <section id="content">
+            <h3>Our preparation: The Gathering of the Three</h3>
+            <p class="text-lg leading-relaxed drop-cap content-paragraph">
+                For three nights we keep silence. No salt, no meat, no touching iron. We sleep with birch ash on our eyelids, water in bowls under our beds. Dreams twist, but none of us cry out. They pass like animals through high grass, seen only by the sway they leave.
+            </p>
+            <p class="text-lg leading-relaxed mt-4 content-paragraph">
+                At dawn on the twentieth, as you're reading this, we will cross the creek slip beneath Crni Most, the Black Bridge. We do not cross it, we pass under it, in the creek itself. The water is mountain-cold; it bites the skin and takes what little fear remains. Our arrival stays unannounced.
+            </p>
+            <p class="text-lg leading-relaxed mt-4 content-paragraph">
+                On the far bank stands the Tree of Ancestors, a crooked elder that drinks from both soil and stream. Each of us takes one leaf, not torn but chosen where it is ready to fall; pressed to the pulse at the wrist, then folded away to mark the way back.
+            </p>
+            <p class="text-lg leading-relaxed mt-4 content-paragraph">
+                We part at the bridge, each to a direction, each to fetch what does not belong to the forest's law.
+            </p>
+            <p class="text-lg leading-relaxed mt-4 content-paragraph">
+                North for the key that opens and bites shut.
+            </p>
+            <p class="text-lg leading-relaxed mt-4 content-paragraph">
+                East for the bitterness that draws a border and drains will.
+            </p>
+            <p class="text-lg leading-relaxed mt-4 content-paragraph">
+                West for the faint green light that remembers the dead.
+            </p>
 
-        <p>At dawn on the twentieth, as you're reading this, we will cross the creek slip beneath Crni Most, the Black Bridge. We do not cross it, we pass under it, in the creek itself. The water is mountain-cold; it bites the skin and takes what fear remains. Our arrival stays unannounced.</p>
+            <h3>The three offerings, outside her Realm</h3>
+            <p class="text-lg leading-relaxed mt-4 content-paragraph">
+                Baba walks north, to the storm-felled grove, and pulled <strong>Sedmoključ</strong>. A raskovnik root prepared against the grain. Pickled in brine from a Dead Spring and bound with seven red threads, each knot tied on a waning moon. It forces the spirit hinge to open, then bites shut beneath the foot that trespasses. It tastes of vows and salt; it is not born clean in Muma's world.
+            </p>
+            <p class="text-lg leading-relaxed mt-4 content-paragraph">
+                Alexia turned east, into the thornfield of burnt crow feathers. There, she found <strong>Gorkovid</strong>. Tansy raised in a scorched field, watered with brine and ash, never touched by bees. Its bitterness seals a border and drains will at the moment of the bind.
+            </p>
+            <p class="text-lg leading-relaxed mt-4 content-paragraph">
+                Gruba heads west, toward the caves where moss grows long as hair. In the damp dark she picks <span id="glowing-fungus-trigger" class="animate-on-scroll">Žarnoć</span>. A dusty fungus that glows faint green. This strain sprang from a coffin plank jammed in limestone after a flood; it fed on funeral wax and oath-ink. It shines with memory, not with growth. It draws curiosity and softens wrath.
+            </p>
+            <p class="text-lg leading-relaxed mt-4 content-paragraph">
+                We return before dusk; our soles bleed; we say nothing. We are no longer women. We are vessels.
+            </p>
 
-        <p>On the far bank stands the Tree of Ancestors, a crooked elder that drinks from both soil and stream. Each of us takes one leaf, not torn but chosen where it is ready to fall; pressed to the pulse at the wrist, then folded away to mark the way back.</p>
+            <h3>The procession and the altar</h3>
+            <p class="text-lg leading-relaxed mt-4 content-paragraph">
+                We walk to Zubi Šume, the Forest's Teeth. The stones rise pale like jaw and molar; sound thins as if swallowed. We find our spot. In the centre we build what carries the sound of worlds:
+            </p>
+            <p class="text-lg leading-relaxed mt-4 content-paragraph">
+                Gruba lays a charred trunk; Alexia prises a thin slab from a standing stone and slides it on top; I set a clay bowl and pour moon water prepared days ago. Altar in the middle. We stand at our points. We speak the line that opens the conduit:
+            </p>
+            <blockquote>
+                "Water, womb of life, mirror of the night, lend me your voice, your power, your light."
+            </blockquote>
+            <p class="text-lg leading-relaxed mt-4 content-paragraph">
+                Across the world, Jojo feel the tingle in your hands. The channel is open.
+            </p>
 
-        <p>We part at the bridge, each to a direction, each to fetch what does not belong to the forest's law.<br>
-        North for the key that opens and bites shut.<br>
-        East for the bitterness that draws a border and drains will.<br>
-        West for the faint green light that remembers the dead.</p>
+            <h3>The lure</h3>
+            <p class="text-lg leading-relaxed mt-4 content-paragraph">
+                The chant begins. It is not pretty; it is plain. A mothers' song passed mouth to mouth, older than paper. Insects still their wings. A branch creaks, then does not. The bowl's skin tightens until it reflects the stones like a dark eye.
+            </p>
+            <p class="text-lg leading-relaxed mt-4 content-paragraph">
+                We chant:
+            </p>
+            <blockquote>
+                Majko što u lišću spavaš,<br>
+                Što ljubav zubima cijepaš,<br>
+                Došla si kad zadnje srce pukne.<br>
+                Pojavi se. Uništi. Ugrizi.
+            </blockquote>
 
-        <h2>The three offerings, outside her Realm</h2>
+            <h3>Presence</h3>
+            <p class="text-lg leading-relaxed mt-4 content-paragraph">
+                The woods goes silent. Breath like wet bark; moss-sweet rot; a weight behind the eyes. Where she stands, bark takes the idea of a woman; hair hangs like wet roots; eyes keep the colour of unlit resin. She is not afraid of us. She is curious, then annoyed, as if a fly has landed on the skin of a lion.
+            </p>
+            <p class="text-lg leading-relaxed mt-4 content-paragraph">
+                Gruba buckles for a heartbeat. Baba calms her with two words: "Steady, child." Alexia tastes blood; she has bitten her lip without knowing. Muma's attention moves like a shadow across stone.
+            </p>
+            <p class="text-lg leading-relaxed mt-4 content-paragraph">
+                For the space of a breath, the past rises in Baba's throat, the year Josipa was lost; her jaw trembles; she sets it, lifts her chin, and speaks:
+            </p>
+            <blockquote>
+                "Šumska Majko! We come to restore balance, not to beg a favour. By the Law of the Endless that binds all worlds, a Shadow of the First World was given passage among the living and devours where it should not. Mother of the Forest, bear witness to this violation. Strike as the righteous arm of justice; reclaim what was taken; let the debt be severed."
+            </blockquote>
+            <p class="text-lg leading-relaxed mt-4 content-paragraph">
+                <span id="hiss-trigger" class="animate-on-scroll">A hiss passes through the glade from everywhere at once</span>, a sound that lives in the bones. Muma does not take orders from a witch, and she does not forgive being called.
+            </p>
+            <p class="text-lg leading-relaxed mt-4 content-paragraph">
+                She pauses, as if weighing us, testing for arrogance or plea. The stones appear closer than they are; the air thickens. A beetle scratches once under bark, then is silent. Cold gathers at the wrists, as if bracelets of water are tightened.
+            </p>
+            <p class="text-lg leading-relaxed mt-4 content-paragraph">
+                Before she can strike, Alexia calls out:
+            </p>
+            <blockquote>
+                "We bring gifts."
+            </blockquote>
+            <p class="text-lg leading-relaxed mt-4 content-paragraph">
+                Muma tilts. The air tightens.
+            </p>
+            <p class="text-lg leading-relaxed mt-4 content-paragraph">
+                Gruba reaches into her damp coat and lifts <span class="glowing-fungus">Žarnoć</span>. Green breath wakes along the gills. Muma steps closer, gaze fixed on the glow, she knows every grass, every crop, yet this she has never seen, she comes closer still, and crosses the ring drawn around the altar. In that instant Baba drives Sedmoključ into the soil at her mark. The hinge bites shut beneath the trespassing foot.
+            </p>
+            <p class="text-lg leading-relaxed mt-4 content-paragraph">
+                Alexia wraps Gorkovid in a scrap of linen and crushes it, bitterness staining the cloth; she presses it to the altar stone. Bitterness floods low across the ground and licks at Muma's knees. She shudders, slows. Then with a sudden lash she surges toward Alexia. Baba stamps the earth; the hinge grips tighter. Gruba blows lightly across Žarnoć. Fine glowing dust rises and hangs; Muma's eyes follow it like a moth tracking a cold flame. Mesmerised. She knows she is being tricked.
+            </p>
+            <p class="text-lg leading-relaxed mt-4 content-paragraph">
+                Each time she turns her anger on one, the other two pull harder. Gruba keeps the fungus high though her arm shakes; Alexia's stained cloth smokes at the edges; the hinge holds fast under Baba's heel. Voice, ground, air. She cannot break all three at once.
+            </p>
+            <p class="text-lg leading-relaxed mt-4 content-paragraph">
+                At last, her rage thins. Baba knows they cannot hold her much longer. There is no watch here to tell time. Only the moon and the bowl. Baba's thoughts go to Jojo. <span id="water-black-trigger" class="animate-on-scroll">The water in the bowl turns black.</span> From its depth a faint, distant voice begins to form, broken at first, then clearer with every breath.
+            </p>
+            
+            <h3>The fourth circle</h3>
+            <p class="text-lg leading-relaxed mt-4 content-paragraph">
+                06:15 in Singapore. Jojo's heart climbs. She feels the conduit open like a thread pulling through the chest. Quick breath, focus, a brief light-headedness, then steady. She begins. Normal voice, steady pace, five minutes only. At first the conduit carries fragments, like words heard through rain.
+            </p>
+            <p class="text-lg leading-relaxed mt-4 content-paragraph">
+                "Y.P.S.… shadow… known… release… banish… strike… return…"
+            </p>
+            <p class="text-lg leading-relaxed mt-4 content-paragraph">
+                With each breath the bowl strengthens the sound. The fragments join. Her chant stands whole:
+            </p>
+            <blockquote>
+                "Y.P.S., shadow you invited, be named and known; release, banish, strike; return what is not yours."
+            </blockquote>
+            <p class="text-lg leading-relaxed mt-4 content-paragraph">
+                Her words travel the conduit; the bowl drinks the sound and gives it back like a bell under water. We join in, we echo only the verdict: Release, banish, strike, return what is not yours.
+            </p>
 
-        <p>• Baba walks north, to the storm-felled grove, and pulled Sedmoključ. A raskovnik root prepared against the grain. Pickled in brine from a Dead Spring and bound with seven red threads, each knot tied on a waning moon. It forces the spirit hinge to open, then bites shut beneath the foot that trespasses. It tastes of vows and salt; it is not born clean in Muma's world.</p>
+            <h3>Judgment</h3>
+            <p class="text-lg leading-relaxed mt-4 content-paragraph">
+                Her rage stills; she listens. The Three hold her with the last of their strength. The messenger's voice bears an ancient seal, the karmic right to settle the debt, a First Law even Mother of the Forest must obeys. Her head tilts, so as not to miss a word. Jojo's voice is crystal clear:
+            </p>
+            <blockquote>
+                "Y.P.S., shadow you invited, be named and known; release, banish, strike; return what is not yours."
+            </blockquote>
+            <p class="text-lg leading-relaxed mt-4 content-paragraph">
+                She now knows the name. Her head tilts farther than a neck should tilt. She knows every creature on this Earth, living or dead. She is searching for her.. eyes black and void, gaze emptied, quick, unnatural ticks.. then she looks past us, past the trees, to where the named one stands in the world, and <span id="eyes-fire-trigger" class="animate-on-scroll">her eyes take fire.</span> She found her.
+            </p>
+            <p class="text-lg leading-relaxed mt-4 content-paragraph">
+                The roots crack; the air compresses. The Three release. Thunder cracks; the ground shudders; Muma is gone.
+            </p>
+            <p class="text-lg leading-relaxed mt-4 content-paragraph">
+                She will strike the Strigoi with a single blow.
+            </p>
 
-        <p>• Alexia turned east, into the thornfield of burnt crow feathers. There, she found Gorkovid. Tansy raised in a scorched field, watered with brine and ash, never touched by bees. Its bitterness seals a border and drains will at the moment of the bind.</p>
+            <h3>Closings</h3>
+            <p class="text-lg leading-relaxed mt-4 content-paragraph">
+                We look at each other, no words. Shaken, but in one piece. The price shows on skin: <span id="price-trigger" class="animate-on-scroll price-baba">crescents under Baba's nails darken;</span> <span class="animate-on-scroll price-alexia">weal rise on Alexia's palm;</span> <span class="animate-on-scroll price-gruba">a thin ring of green rims Gruba's pupils.</span>
+            </p>
+            <p class="text-lg leading-relaxed mt-4 content-paragraph">
+                We erase prints. We unmake the altar. We take the bowl. It is not enough. Before first light the Council will veil the glade with juniper ash and grave-fern, and cast the enchantment of oblivion over the site that will hold a hundred years.
+            </p>
 
-        <p>• Gruba heads west, toward the caves where moss grows long as hair. In the damp dark she picks Žarnoć. A bitter fungus that glows faint green. This strain sprang from a coffin plank jammed in limestone after a flood; it fed on funeral wax and oath-ink. It shines with memory, not with growth. It draws curiosity and softens wrath.</p>
+            <h3>A thread I left unpulled</h3>
+            <p class="text-lg leading-relaxed mt-4 content-paragraph">
+                At the centre where <em>she</em> stood, I empty the last of the moon water and press a single wooden bead into the earth. I do not explain this now. We move on.
+            </p>
+            
+            <h3>Jojo's seal</h3>
+            <p class="text-lg leading-relaxed mt-4 content-paragraph">
+                She stop the chant. Hands over heart. One breath in, one longer breath out. In her mind: "The door is closed." Then she speak once, clearly:
+            </p>
+            <blockquote>
+                "F.G.S., my debt is paid; bond between us is closed; I release you, I release myself; go in peace."
+            </blockquote>
 
-        <p>We return before dusk; our soles bleed; we say nothing. We are no longer women. We are vessels.</p>
+            <h3>Proof of silence</h3>
+            <p class="text-lg leading-relaxed mt-4 content-paragraph">
+                The forest exhales. Jojo's room settles. For the first time in years, she is still without a shadow beside her.
+            </p>
+        </section>
+    </main>
+    
+    <script>
+        document.addEventListener("DOMContentLoaded", function() {
+            // --- Lightning & Thunder Effect ---
+            const thunderOverlay = document.getElementById('thunderstorm-overlay');
+            let thunderCount = 0;
+            const maxThunder = 2;
 
-        <h2>The procession and the altar</h2>
+            function triggerThunderstorm() {
+                if (thunderCount < maxThunder) {
+                    thunderCount++;
+                    thunderOverlay.classList.add('active');
+                    setTimeout(() => thunderOverlay.classList.remove('active'), 3000);
+                }
+            }
+            // Schedule the thunderstorms less frequently
+            setTimeout(triggerThunderstorm, Math.random() * 30000 + 30000); // 30-60 seconds
+            setTimeout(triggerThunderstorm, Math.random() * 40000 + 80000); // 80-120 seconds
 
-        <p>We walk to Zubi Šume, the Forest's Teeth. The stones rise pale like jaw and molar; sound thins as if swallowed. We find our spot. In the centre we build what carries the sound of worlds:</p>
+            // --- NEW Ghost Sentence Effect ---
+            const contentParagraphs = document.querySelectorAll('.content-paragraph');
+            const grimoirePage = document.querySelector('.grimoire-page');
+            let visibleParagraphs = new Set();
 
-        <p>Gruba lays a charred trunk; Alexia prises a thin slab from a standing stone and slides it on top; I set a clay bowl and pour moon water prepared days ago. Altar in the middle. We stand at our points. We speak the line that opens the conduit: "Water, womb of life, mirror of the night, lend me your voice, your power, your light." Across the world, you feel the tingle in your hands. The channel is open.</p>
+            // Helper function to split text into sentences
+            function extractSentences(text) {
+                // Split by periods, exclamation marks, and question marks, keeping the punctuation
+                const sentences = text.match(/[^.!?]+[.!?]+/g) || [];
+                return sentences.map(s => s.trim()).filter(s => s.length > 20); // Only sentences with 20+ chars
+            }
 
-        <p><strong>The lure</strong></p>
+            // Observe which paragraphs are currently visible on screen
+            const paragraphObserver = new IntersectionObserver(entries => {
+                entries.forEach(entry => {
+                    if (entry.isIntersecting) {
+                        visibleParagraphs.add(entry.target);
+                    } else {
+                        visibleParagraphs.delete(entry.target);
+                    }
+                });
+            }, { threshold: 0.5 });
 
-        <p>The chant begins. It is not pretty; it is plain. A mothers' song passed mouth to mouth, older than paper. Insects still their wings. A branch creaks, then does not. The bowl's skin tightens until it reflects the stones like a dark eye.</p>
+            contentParagraphs.forEach(p => paragraphObserver.observe(p));
 
-        <p>We chant:</p>
+            // Create ghost sentence that rises from the paper
+            function createGhostSentence() {
+                if (visibleParagraphs.size === 0) return;
 
-        <div class="chant">
-            Majko što u lišću spavaš,<br>
-            Što ljubav zubima cijepaš,<br>
-            Došla si kad zadnje srce pukne.<br>
-            Pojavi se. Uništi. Ugrizi.
-        </div>
+                // Pick a random visible paragraph
+                const visibleArray = Array.from(visibleParagraphs);
+                const sourceParagraph = visibleArray[Math.floor(Math.random() * visibleArray.length)];
+                
+                // Get all text from the paragraph (excluding child spans with special effects)
+                let paragraphText = '';
+                sourceParagraph.childNodes.forEach(node => {
+                    if (node.nodeType === Node.TEXT_NODE) {
+                        paragraphText += node.textContent;
+                    } else if (node.nodeType === Node.ELEMENT_NODE && !node.id) {
+                        // Include text from non-special-effect elements
+                        paragraphText += node.textContent;
+                    }
+                });
 
-        <h2>Presence</h2>
+                // Extract sentences
+                const sentences = extractSentences(paragraphText);
+                if (sentences.length === 0) return;
 
-        <p>The woods goes silent. Breath like wet bark; moss-sweet rot; a weight behind the eyes. Where she stands, bark takes the idea of a woman; hair hangs like wet roots; eyes keep the colour of unlit resin. She is not afraid of us. She is curious, then annoyed, as if a fly has landed on the skin of the forest.</p>
+                // Pick a random sentence
+                const randomSentence = sentences[Math.floor(Math.random() * sentences.length)];
+                
+                // Create the ghost clone
+                const clone = document.createElement('div');
+                clone.className = 'ghost-sentence-clone';
+                clone.textContent = randomSentence;
 
-        <p>Gruba buckles for a heartbeat. Baba calms her with two words: Steady, child. Alexia tastes blood; she has bitten her lip without knowing. Muma's attention moves like a shadow across stone.</p>
+                // Position it at the paragraph's location
+                const rect = sourceParagraph.getBoundingClientRect();
+                const pageRect = grimoirePage.getBoundingClientRect();
+                
+                // Position randomly within the paragraph area
+                const randomOffset = Math.random() * (rect.height * 0.5);
+                clone.style.left = `${rect.left - pageRect.left + 20}px`;
+                clone.style.top = `${rect.top - pageRect.top + randomOffset}px`;
+                clone.style.fontSize = window.getComputedStyle(sourceParagraph).fontSize;
+                clone.style.fontFamily = window.getComputedStyle(sourceParagraph).fontFamily;
 
-        <p>For the space of a breath, the past rises in Baba's throat, the year Josipa was lost; her jaw trembles; she sets it, lifts her chin, and speaks:</p>
+                grimoirePage.appendChild(clone);
+                
+                setTimeout(() => {
+                    clone.remove();
+                }, 12000); // Remove after animation completes (12s)
+            }
+            
+            // Trigger first ghost sentence after a short delay
+            setTimeout(() => createGhostSentence(), 3000);
+            
+            // Periodically create floating ghost sentences
+            setInterval(() => {
+                createGhostSentence();
 
-        <p>"Šumska Majko! We come to restore balance, not to beg a favour. By the Law of the Endless that binds all worlds, a Shadow of the First World was given passage among the living and devours where it should not. Mother of the Forest, bear witness to this violation. Strike as the righteous arm of justice; reclaim what was taken; let the debt be severed."</p>
+            }, 18000); // Trigger every 18 seconds for dramatic effect
 
-        <p>A hiss passes through the glade from everywhere at once, a sound that lives in the bones. Muma does not take orders from a witch, and she does not forgive being called.</p>
 
-        <p>She pauses, as if weighing us, testing for arrogance or plea. The stones appear closer than they are; the air thickens. A beetle scratches once under bark, then is silent. Cold gathers at the wrists, as if bracelets of water are tightened.</p>
+            // --- Blood Drop Effect ---
+            function createBloodDrop() {
+                const bloodDrop = document.createElement('div');
+                bloodDrop.className = 'blood-drop';
+                
+                const pageRect = grimoirePage.getBoundingClientRect();
+                const randomX = Math.random() * (pageRect.width - 20);
+                const randomY = Math.random() * (pageRect.height - 20);
+                
+                bloodDrop.style.left = `${randomX}px`;
+                bloodDrop.style.top = `${randomY}px`;
+                
+                // Randomize size slightly
+                const size = 6 + Math.random() * 6; // 6-12px
+                bloodDrop.style.width = `${size}px`;
+                bloodDrop.style.height = `${size}px`;
+                
+                grimoirePage.appendChild(bloodDrop);
+                
+                setTimeout(() => {
+                    bloodDrop.remove();
+                }, 4000); // Remove after animation completes
+            }
 
-        <p>Before she can strike, Alexia calls out: "We bring gifts."</p>
+            // Create blood drops at random intervals
+            function scheduleBloodDrop() {
+                const delay = Math.random() * 10000 + 8000; // 8-18 seconds
+                setTimeout(() => {
+                    createBloodDrop();
+                    scheduleBloodDrop(); // Schedule next drop
+                }, delay);
+            }
 
-        <p>Muma tilts. The air tightens.</p>
+            // Trigger first blood drop after a short delay
+            setTimeout(() => createBloodDrop(), 2000);
+            scheduleBloodDrop(); // Start the blood drop cycle
 
-        <p>Gruba reaches into her damp coat and lifts Žarnoć. Green breath wakes along the gills. Muma steps closer, gaze fixed on the glow, she knows every grass, every crop, yet this she has never seen, she comes closer still, and crosses the ring drawn around the altar. In that instant Baba drives Sedmoključ into the soil at her mark. The hinge bites shut beneath the trespassing foot.</p>
 
-        <p>Alexia wraps Gorkovid in a scrap of linen and crushes it, bitterness staining the cloth; she presses it to the altar stone. Bitterness floods low across the ground and licks at Muma's knees. She shudders, slows. Then with a sudden lash she surges toward Alexia. Baba stamps the earth; the hinge grips tighter. Gruba blows lightly across Žarnoć. Fine glowing dust rises and hangs; Muma's eyes follow it like a moth tracking a cold flame. Mesmerised. She knows she is being tricked.</p>
+            // --- Scroll-triggered Animations ---
+            const animatedElements = document.querySelectorAll('.animate-on-scroll');
+            const scrollObserver = new IntersectionObserver((entries) => {
+                entries.forEach(entry => {
+                    if (entry.isIntersecting) {
+                        const target = entry.target;
+                        switch (target.id) {
+                            case 'glowing-fungus-trigger': target.classList.add('glowing-fungus'); break;
+                            case 'eyes-fire-trigger': target.classList.add('eyes-on-fire'); break;
+                            case 'water-black-trigger': target.classList.add('water-to-black'); break;
+                            case 'hiss-trigger': target.classList.add('hiss-effect'); break;
+                            case 'price-trigger':
+                                document.querySelectorAll('.price-baba, .price-alexia, .price-gruba').forEach(el => el.style.transition = 'color 1s ease-in');
+                                break;
+                        }
+                        scrollObserver.unobserve(target);
+                    }
+                });
+            }, { threshold: 0.8 });
 
-        <p>Each time she turns her anger on one, the other two pull harder. Gruba keeps the fungus high though her arm shakes; Alexia's stained cloth smokes at the edges; the hinge holds fast under Baba's heel. Voice, ground, air. She cannot break all three at once.</p>
-
-        <p>At last, her rage thins. Baba knows they cannot hold her much longer. There is no watch here to tell time. Only the moon and the bowl. Baba's thoughts go to Jojo. The water in the bowl turns black. From its depth a faint, distant voice begins to form, broken at first, then clearer with every breath.</p>
-
-        <p><strong>The fourth circle</strong></p>
-
-        <p>06:15 in Singapore. Your heart climbs. You feel the conduit open like a thread pulling through the chest. Quick breath, focus, a brief light-headedness, then steady. You begin. Normal voice, steady pace, five minutes only. At first the conduit carries fragments, like words heard through rain.</p>
-
-        <p>"Yoong… shadow… known… release… banish… strike… return…"</p>
-
-        <p>With each breath the bowl strengthens the sound. The fragments join. Your chant stands whole:</p>
-
-        <p>"Yoong Pui Shen, shadow you invited, be named and known; release, banish, strike; return what is not yours."</p>
-
-        <p>Your words travel the conduit; the bowl drinks the sound and gives it back like a bell under water. We join in, we echo only the verdict: Release, banish, strike, return what is not yours.</p>
-
-        <p><strong>Judgment</strong></p>
-
-        <p>Her rage stills; she listens. The Three hold her with the last of their strength. The messenger's voice bears an ancient seal, the karmic right to settle the debt, a First Law even Mother of the Forest must obeys. Her head tilts, so as not to miss a word. Your voice is crystal clear:</p>
-
-        <p>"Yoong Pui Shen, shadow you invited, be named and known; release, banish, strike; return what is not yours."</p>
-
-        <p>She now knows the name. Her head tilts farther than a neck should tilt. She knows every creature on this Earth, living or dead. She is searching for her.. eyes black and void, gaze emptied, quick, unnatural ticks.. then she looks past us, past the trees, to where the named one stands in the world, and her eyes take fire. She found her.</p>
-
-        <p>The roots crack; the air compresses. The Three release. Thunder cracks; the ground shudders; Muma is gone.</p>
-
-        <p>She will strike the Strigoi with a single blow.</p>
-
-        <p>We look at each other, no words. Shaken, but in one piece. The price shows on skin: crescents under Baba's nails darken; weal rise on Alexia's palm; a thin ring of green rims Gruba's pupils.</p>
-
-        <p><strong>Closings</strong></p>
-
-        <p>We erase prints. We unmake the altar. We take the bowl. It is not enough. Before first light the Council will veil the glade with juniper ash and grave-fern, and cast the enchantment of forgetting over the site that will hold a hundred years.</p>
-
-        <p><strong>A thread I leave unpulled</strong></p>
-
-        <p>At the centre where she stood, I empty the last of the moon water and press a single wooden bead into the earth. I do not explain this to you now. We move on.</p>
-
-        <p><strong>Your seal</strong></p>
-
-        <p>06:20. Stop the chant. Hands over your heart. One breath in, one longer breath out. In your mind: "The door is closed." Then speak once, clearly:</p>
-
-        <p>"Frederico Gil Sander, my debt is paid; bond between us is closed; I release you, I release myself; go in peace."</p>
-
-        <p>Remain until 06:30. Step out. Lie down. The emptiness will feel sharp at first, then clean.</p>
-
-        <p><strong>Proof of silence</strong></p>
-
-        <p>The forest exhales. Your room settles. For the first time in years, you are still without a shadow beside you.</p>
-    </div>
+            animatedElements.forEach(el => scrollObserver.observe(el));
+        });
+    </script>
 </body>
 </html>
